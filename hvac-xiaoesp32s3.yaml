@@ -1,0 +1,138 @@
+substitutions:
+  name: hvac-xiaoS3
+  friendly_name: HVAC XiaoESP32S3
+  model: unknown
+  remote_temp_sensor: sensor.undefined
+
+packages:
+  # fanspeeds: !include common/heatpump-fanspeeds.yaml
+  # remote: !include common/heatpump-remote-sensor.yaml
+  # intake-sensors: !include common/heatpump-intake-sensors.yaml
+  # bt-proxy: !include common/bt-proxy.yaml
+
+external_components:
+  - source: github://echavet/MitsubishiCN105ESPHome
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  platformio_options:
+    board_build.flash_mode: dio
+    board_build.mcu: esp32s3
+    board_build.extra_flags:
+    - "-DARDUINO_HW_CDC_ON_BOOT=0"
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+wifi:
+  # See https://github.com/esphome/issues/issues/4893.
+  output_power: 8.5
+  fast_connect: true
+
+esp32_improv:
+  authorizer: none
+
+api:
+
+ota:
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+logger:
+  level: INFO
+  logs:
+    EVT_SETS : INFO
+    WIFI : INFO
+    MQTT : INFO
+    WRITE_SETTINGS : INFO
+    SETTINGS : INFO
+    STATUS : INFO
+    CN105Climate: INFO
+    CN105: INFO
+    CYCLE: WARN # Set this to INFO to see how long your cycle times are taking
+    climate: WARN
+    sensor: INFO
+    chkSum : INFO
+    WRITE : WARN
+    READ : WARN
+    Header: INFO
+    Decoder : INFO
+    CONTROL_WANTED_SETTINGS: INFO
+
+# ESPHome bug workaround. https://github.com/echavet/MitsubishiCN105ESPHome/commit/500039de846e5c314821524b3b8a6c2cd63c93ce
+sensor:
+  - platform: uptime
+    name: Uptime
+
+button:
+  - platform: restart
+    name: Restart
+
+uart:
+  id: HP_UART
+  baud_rate: 2400
+  tx_pin: GPIO43
+  rx_pin: GPIO44
+
+# Configuration defaults the CN105 climate platform
+
+climate:
+  - platform: cn105
+    id: hp
+    name: "${friendly_name}"
+    icon: mdi:heat-pump
+    visual:
+      min_temperature: 15
+      max_temperature: 30
+      temperature_step:
+        target_temperature: 1
+        current_temperature: 0.5
+    # Timeout and communication settings
+    remote_temperature_timeout: 60min
+    update_interval: 2s
+    debounce_delay : 100ms
+    # Various optional sensors, not all sensors are supported by all heatpumps
+    compressor_frequency_sensor:
+      name: Compressor Frequency
+      entity_category: diagnostic
+      disabled_by_default: true
+    outside_air_temperature_sensor:
+      name: Outside Air Temp
+      disabled_by_default: true
+    vertical_vane_select:
+      name: Vertical Vane
+      disabled_by_default: false
+    horizontal_vane_select:
+      name: Horizontal Vane
+      disabled_by_default: true
+    isee_sensor:
+      name: ISEE Sensor
+      disabled_by_default: true
+    stage_sensor:
+      name: Stage
+      id: stage
+      entity_category: diagnostic
+      disabled_by_default: true
+    sub_mode_sensor:
+      name: Sub Mode
+      entity_category: diagnostic
+      disabled_by_default: true
+    auto_sub_mode_sensor:
+      name: Auto Sub Mode
+      entity_category: diagnostic
+      disabled_by_default: true
+    input_power_sensor:
+      name: Input Power
+      disabled_by_default: true
+    kwh_sensor:
+      name: Energy Usage
+      disabled_by_default: true
+    runtime_hours_sensor:
+      name: Runtime Hours
+      entity_category: diagnostic
+      disabled_by_default: true
