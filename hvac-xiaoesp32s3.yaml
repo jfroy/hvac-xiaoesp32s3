@@ -20,7 +20,7 @@ esphome:
     board_build.flash_mode: dio
     board_build.mcu: esp32s3
     board_build.extra_flags:
-    - "-DARDUINO_HW_CDC_ON_BOOT=0"
+      - "-DARDUINO_HW_CDC_ON_BOOT=0"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -36,6 +36,16 @@ esp32_improv:
   authorizer: none
 
 api:
+  # Remote temperature action
+  actions:
+    - action: set_remote_temperature
+      variables:
+        temperature: float
+      then:
+        - lambda: "id(hp).set_remote_temperature(temperature);"
+    - action: use_internal_temperature
+      then:
+        - lambda: "id(hp).set_remote_temperature(0);"
 
 ota:
 
@@ -46,28 +56,58 @@ time:
 logger:
   level: INFO
   logs:
-    EVT_SETS : INFO
-    WIFI : INFO
-    MQTT : INFO
-    WRITE_SETTINGS : INFO
-    SETTINGS : INFO
-    STATUS : INFO
+    EVT_SETS: INFO
+    WIFI: INFO
+    MQTT: INFO
+    WRITE_SETTINGS: INFO
+    SETTINGS: INFO
+    STATUS: INFO
     CN105Climate: INFO
     CN105: INFO
     CYCLE: WARN # Set this to INFO to see how long your cycle times are taking
     climate: WARN
     sensor: INFO
-    chkSum : INFO
-    WRITE : WARN
-    READ : WARN
+    chkSum: INFO
+    WRITE: WARN
+    READ: WARN
     Header: INFO
-    Decoder : INFO
+    Decoder: INFO
     CONTROL_WANTED_SETTINGS: INFO
 
-# ESPHome bug workaround. https://github.com/echavet/MitsubishiCN105ESPHome/commit/500039de846e5c314821524b3b8a6c2cd63c93ce
 sensor:
+  # ESPHome bug workaround. https://github.com/echavet/MitsubishiCN105ESPHome/commit/500039de846e5c314821524b3b8a6c2cd63c93ce
   - platform: uptime
     name: Uptime
+  # Creates the sensor used to receive the remote temperature from Home Assistant
+  # Uses sensor selected in substitutions area at top of config
+  # Customize the filters to your application:
+  #   Uncomment the first line to convert F to C when remote temps are sent
+  #   If you have a fast or noisy sensor, consider some of the other filter
+  #   options such as throttle_average.
+  - platform: homeassistant
+    name: "Remote Temperature Sensor"
+    entity_id: ${remote_temp_sensor}
+    internal: false
+    disabled_by_default: true
+    device_class: temperature
+    state_class: measurement
+    unit_of_measurement: "°C"
+    filters:
+      # Uncomment this line to convert F to C on incoming temperature
+      # - lambda: return (x - 32) * (5.0/9.0);
+      # Limits values to range accepted by Mitsubishi units
+      - clamp:
+          min_value: 1
+          max_value: 40
+          ignore_out_of_range: true
+      - throttle: 30s
+    on_value:
+      then:
+        - logger.log:
+            level: INFO
+            format: "Remote temperature received from HA: %.1f C"
+            args: ["x"]
+        - lambda: "id(hp).set_remote_temperature(x);"
 
 button:
   - platform: restart
@@ -95,7 +135,7 @@ climate:
     # Timeout and communication settings
     remote_temperature_timeout: 60min
     update_interval: 2s
-    debounce_delay : 100ms
+    debounce_delay: 100ms
     # Various optional sensors, not all sensors are supported by all heatpumps
     compressor_frequency_sensor:
       name: Compressor Frequency
