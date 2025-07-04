@@ -12,6 +12,7 @@ packages:
 
 external_components:
   - source: github://echavet/MitsubishiCN105ESPHome
+    refresh: 0s
 
 esphome:
   name: ${name}
