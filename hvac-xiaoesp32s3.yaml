@@ -131,7 +131,7 @@ climate:
       min_temperature: 15
       max_temperature: 30
       temperature_step:
-        target_temperature: 1
+        target_temperature: 0.5
         current_temperature: 0.5
     # Timeout and communication settings
     remote_temperature_timeout: 60min
