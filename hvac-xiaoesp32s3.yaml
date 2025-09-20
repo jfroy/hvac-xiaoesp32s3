@@ -177,6 +177,3 @@ climate:
       name: Runtime Hours
       entity_category: diagnostic
       disabled_by_default: true
-    night_mode_switch:
-      name: Night mode
-      disabled_by_default: true
