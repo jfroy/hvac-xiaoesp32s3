@@ -22,6 +22,14 @@ esphome:
     board_build.mcu: esp32s3
     board_build.extra_flags:
       - "-DARDUINO_HW_CDC_ON_BOOT=0"
+  on_boot:
+    # workaround for UART in recent versions of ESP-IDF
+    # https://github.com/echavet/MitsubishiCN105ESPHome/issues/378
+    - priority: 1001
+      then:
+        - lambda: |-
+            gpio_reset_pin((gpio_num_t)43);
+            gpio_reset_pin((gpio_num_t)44);
 
 esp32:
   board: esp32-s3-devkitc-1
