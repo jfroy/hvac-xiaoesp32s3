@@ -4,12 +4,6 @@ substitutions:
   model: unknown
   remote_temp_sensor: sensor.undefined
 
-packages:
-  # fanspeeds: !include common/heatpump-fanspeeds.yaml
-  # remote: !include common/heatpump-remote-sensor.yaml
-  # intake-sensors: !include common/heatpump-intake-sensors.yaml
-  # bt-proxy: !include common/bt-proxy.yaml
-
 external_components:
   - source: github://echavet/MitsubishiCN105ESPHome
     refresh: 0s
