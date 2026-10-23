@@ -27,7 +27,7 @@ wifi:
   output_power: 8.5db
   fast_connect: true
 
-esp32_improv:
+improv_ble:
   authorizer: none
 
 api:
